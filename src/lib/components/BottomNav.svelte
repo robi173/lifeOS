@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { base } from '$app/paths';
   import { Home, Zap, HeartPulse, Wallet, ListChecks } from 'lucide-svelte';
 
   const navItems = [
@@ -16,13 +17,13 @@
     {#each navItems as item}
       <li class="flex-1">
         <a 
-          href={item.path} 
+          href="{base}{item.path}" 
           class="flex flex-col items-center justify-center h-full space-y-1 transition-colors duration-200"
-          class:text-teal-400={page.url.pathname === item.path}
-          class:text-zinc-500={page.url.pathname !== item.path}
+          class:text-teal-400={page.url.pathname === `${base}${item.path}`}
+          class:text-zinc-500={page.url.pathname !== `${base}${item.path}`}
         >
           <!-- Using item.icon directly as a component works in Svelte 5 -->
-          <item.icon size={22} strokeWidth={page.url.pathname === item.path ? 2.5 : 2} />
+          <item.icon size={22} strokeWidth={page.url.pathname === `${base}${item.path}` ? 2.5 : 2} />
           <span class="text-[10px] font-medium tracking-wide">{item.name}</span>
         </a>
       </li>
