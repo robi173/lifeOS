@@ -11,6 +11,7 @@
     if (color === 'green') return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]';
     if (color === 'yellow') return 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]';
     if (color === 'orange') return 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]';
+    if (color === 'rose') return 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]';
     return 'bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]'; // default teal
   });
 
