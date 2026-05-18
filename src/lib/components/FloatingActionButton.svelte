@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, X, Droplets, Dumbbell, Pill } from 'lucide-svelte';
+  import { Plus, Droplets, Dumbbell, Pill } from 'lucide-svelte';
   import { page } from '$app/state';
   import { base } from '$app/paths';
   import { haptic, HAPTIC_PATTERNS } from '$lib/haptics';
@@ -8,12 +8,14 @@
   let isExpanded = $state(false);
   let isClosing = $state(false);
 
-  let isHealthPage = $derived(page.url.pathname === `${base}/health`);
+  let isHealthPage  = $derived(page.url.pathname === `${base}/health`);
+  let isFinancePage = $derived(page.url.pathname === `${base}/finance`);
+  let isHabitsPage  = $derived(page.url.pathname === `${base}/habits`);
 
   const subItems = [
-    { label: 'Water', icon: Droplets, color: 'bg-cyan-500', shadow: 'shadow-[0_0_15px_rgba(6,182,212,0.4)]' },
-    { label: 'Training', icon: Dumbbell, color: 'bg-orange-500', shadow: 'shadow-[0_0_15px_rgba(249,115,22,0.4)]' },
-    { label: 'Supplement', icon: Pill, color: 'bg-green-500', shadow: 'shadow-[0_0_15px_rgba(34,197,94,0.4)]' }
+    { label: 'Water',      icon: Droplets, color: 'bg-cyan-500',   shadow: 'shadow-[0_0_15px_rgba(6,182,212,0.4)]' },
+    { label: 'Training',   icon: Dumbbell, color: 'bg-orange-500', shadow: 'shadow-[0_0_15px_rgba(249,115,22,0.4)]' },
+    { label: 'Supplement', icon: Pill,     color: 'bg-green-500',  shadow: 'shadow-[0_0_15px_rgba(34,197,94,0.4)]'  },
   ];
 
   function handleClick() {
@@ -25,6 +27,12 @@
       } else {
         isExpanded = true;
       }
+    } else if (isFinancePage) {
+      haptic(HAPTIC_PATTERNS.snap);
+      document.dispatchEvent(new CustomEvent('fab-action', { detail: { type: 'finance' } }));
+    } else if (isHabitsPage) {
+      haptic(HAPTIC_PATTERNS.snap);
+      document.dispatchEvent(new CustomEvent('fab-action', { detail: { type: 'habits' } }));
     } else {
       onClick?.();
     }
@@ -36,10 +44,17 @@
     isClosing = true;
     setTimeout(() => { isExpanded = false; isClosing = false; }, 250);
   }
+
+  // Accent colour per page
+  let fabClass = $derived.by(() => {
+    if (isFinancePage) return 'bg-green-500 hover:bg-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]';
+    if (isHabitsPage)  return 'bg-yellow-500 hover:bg-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)]';
+    return 'bg-teal-500 hover:bg-teal-400 shadow-[0_0_20px_rgba(20,184,166,0.4)]';
+  });
 </script>
 
 <div class="fixed bottom-24 right-6 z-40">
-  <!-- Sub-buttons -->
+  <!-- Sub-buttons (health only) -->
   {#if isExpanded || isClosing}
     {#each subItems as item, i}
       <button
@@ -56,7 +71,7 @@
   <!-- Main FAB -->
   <button
     onclick={handleClick}
-    class="relative w-14 h-14 bg-teal-500 hover:bg-teal-400 text-zinc-950 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.4)] transition-all duration-300 active:scale-90"
+    class="relative w-14 h-14 {fabClass} text-zinc-950 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90"
     style="transform: rotate({isExpanded ? '45deg' : '0deg'})"
     aria-label="Add new entry"
   >
