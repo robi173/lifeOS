@@ -1,114 +1,143 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Card from '$lib/components/Card.svelte';
-  import ProgressBar from '$lib/components/ProgressBar.svelte';
+  import Skeleton from '$lib/components/Skeleton.svelte';
   import { globalState } from '$lib/state.svelte';
-  import { Heart, Zap, Wallet, ListChecks, Sun, Cloud, Wind } from 'lucide-svelte';
+  import { authStore } from '$lib/auth.svelte';
+  import { financeStore, calcTotals } from '$lib/finance.svelte';
+  import { habitsStore } from '$lib/habits.svelte';
+  import { Heart, Zap, Wallet, ListChecks, Target, Flame } from 'lucide-svelte';
+  import { haptic, HAPTIC_PATTERNS } from '$lib/haptics';
+  import { goto } from '$app/navigation';
+
+  let isLoading = $state(true);
+
+  onMount(() => {
+    const timer = setTimeout(() => {
+      isLoading = false;
+    }, 400); // Simulate network load for skeletons
+    return () => clearTimeout(timer);
+  });
+
+  // Derived dashboard data
+  let nextTask = $derived(globalState.tasks.find(t => !t.completed));
+  let totalAssets = $derived(calcTotals(financeStore.currentMonth).totalAssets);
+  
+  let topHabit = $derived(() => {
+    let best = null;
+    let maxStreak = -1;
+    for (const h of habitsStore.habits) {
+      const s = habitsStore.getStreak(h.id);
+      if (s > maxStreak) {
+        maxStreak = s;
+        best = { ...h, streak: s };
+      }
+    }
+    return best;
+  });
 </script>
 
 <div class="space-y-6 pb-6">
-  <header class="flex items-center justify-between">
-    <div class="space-y-1">
-      <h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
-      <p class="text-zinc-500 font-medium text-sm">Welcome back, Commander.</p>
-    </div>
-    <div class="bg-zinc-900/60 p-2 rounded-2xl border border-zinc-800/50 flex items-center gap-3">
-      <div class="text-right">
-        <p class="text-[10px] text-zinc-500 uppercase font-bold leading-none">Vitality</p>
-        <p class="text-lg font-mono font-bold text-teal-400 leading-none mt-1">{globalState.stats.vitality}%</p>
-      </div>
-      <div class="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center border border-teal-500/20">
-        <Zap size={20} class="text-teal-400" />
-      </div>
-    </div>
+  <!-- Header -->
+  <header class="space-y-1">
+    <h1 class="text-3xl font-bold tracking-tight">Command Center</h1>
+    {#if isLoading}
+      <Skeleton width="w-48" height="h-5" rounded="rounded-md" />
+    {:else}
+      <p class="text-zinc-500 font-medium text-sm">Guten Tag, {authStore.user?.name || 'Commander'}.</p>
+    {/if}
   </header>
 
-  <!-- Weather & Quick Info -->
-  <section class="grid grid-cols-2 gap-4">
-    <Card class="flex flex-col gap-2 relative overflow-hidden">
-      <div class="flex items-center justify-between">
-        <Sun size={20} class="text-yellow-400" />
-        <span class="text-xs font-mono text-zinc-400">{globalState.weather.temperature}°C</span>
-      </div>
-      <div>
-        <p class="text-[10px] text-zinc-500 uppercase font-bold">Vienna, AT</p>
-        <p class="text-sm font-medium">{globalState.weather.condition}</p>
-      </div>
-      <div class="flex items-center gap-3 mt-2">
-        <div class="flex items-center gap-1">
-          <Wind size={12} class="text-zinc-500" />
-          <span class="text-[10px] text-zinc-400">AQI: {globalState.weather.aqi}</span>
-        </div>
-      </div>
-    </Card>
+  <!-- Widgets Grid -->
+  <div class="grid grid-cols-1 gap-4">
     
-    <Card class="flex flex-col gap-2 border-t-orange-500/20">
-      <div class="flex items-center gap-2 text-orange-400">
-        <Flame size={18} />
-        <span class="text-xs font-bold uppercase tracking-wider">Streak</span>
+    <!-- Focus Widget -->
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <Card class="relative overflow-hidden cursor-pointer hover:border-teal-500/30 transition-colors active:scale-[0.98]" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto('/focus'); }}>
+      <div class="absolute right-0 top-0 w-24 h-24 bg-teal-500/10 rounded-bl-full blur-2xl pointer-events-none"></div>
+      
+      <div class="flex items-center gap-2 text-teal-400 mb-3 relative z-10">
+        <Target size={18} />
+        <span class="text-xs font-bold uppercase tracking-wider">Next Focus</span>
       </div>
-      <div class="mt-auto">
-        <p class="text-3xl font-mono font-bold text-zinc-100">{globalState.streak}</p>
-        <p class="text-[10px] text-zinc-500 uppercase font-medium">Days active</p>
+      
+      <div class="relative z-10">
+        {#if isLoading}
+          <div class="space-y-2">
+            <Skeleton height="h-6" />
+            <Skeleton width="w-2/3" height="h-4" />
+          </div>
+        {:else if nextTask}
+          <h3 class="text-lg font-bold text-zinc-100">{nextTask.title}</h3>
+          <p class="text-xs text-zinc-500 font-medium uppercase mt-1">Due at {nextTask.time} &bull; Priority: {nextTask.priority}</p>
+        {:else}
+          <p class="text-zinc-500 italic text-sm">All tasks completed.</p>
+        {/if}
       </div>
     </Card>
-  </section>
 
-  <!-- Systems Status -->
-  <section class="space-y-3">
-    <h3 class="text-sm font-semibold text-zinc-300 tracking-wide uppercase">Systems Status</h3>
-    <div class="grid grid-cols-2 gap-3">
-      <Card class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <Heart size={16} class="text-rose-400" />
-          <span class="text-[10px] font-mono text-rose-400">{globalState.stats.health}%</span>
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Finance Widget -->
+      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+      <Card class="cursor-pointer hover:border-green-500/30 transition-colors active:scale-[0.98]" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto('/finance'); }}>
+        <div class="flex items-center gap-2 text-green-400 mb-2">
+          <Wallet size={16} />
+          <span class="text-[10px] font-bold uppercase tracking-wider">Assets</span>
         </div>
-        <ProgressBar progress={globalState.stats.health} color="rose" height="h-1" />
-        <span class="text-[10px] text-zinc-500 font-medium">Health</span>
+        {#if isLoading}
+          <Skeleton height="h-8" rounded="rounded-xl" />
+        {:else}
+          <p class="text-2xl font-mono font-bold text-zinc-100">&euro;{totalAssets.toLocaleString()}</p>
+        {/if}
       </Card>
-      
-      <Card class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <Zap size={16} class="text-teal-400" />
-          <span class="text-[10px] font-mono text-teal-400">{globalState.stats.productivity}%</span>
+
+      <!-- Habit Widget -->
+      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+      <Card class="cursor-pointer hover:border-yellow-500/30 transition-colors active:scale-[0.98]" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto('/habits'); }}>
+        <div class="flex items-center gap-2 text-yellow-400 mb-2">
+          <Flame size={16} />
+          <span class="text-[10px] font-bold uppercase tracking-wider">Top Habit</span>
         </div>
-        <ProgressBar progress={globalState.stats.productivity} color="teal" height="h-1" />
-        <span class="text-[10px] text-zinc-500 font-medium">Focus</span>
-      </Card>
-      
-      <Card class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <Wallet size={16} class="text-green-400" />
-          <span class="text-[10px] font-mono text-green-400">{globalState.stats.finance}%</span>
-        </div>
-        <ProgressBar progress={globalState.stats.finance} color="green" height="h-1" />
-        <span class="text-[10px] text-zinc-500 font-medium">Finance</span>
-      </Card>
-      
-      <Card class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <ListChecks size={16} class="text-yellow-400" />
-          <span class="text-[10px] font-mono text-yellow-400">{globalState.stats.habits}%</span>
-        </div>
-        <ProgressBar progress={globalState.stats.habits} color="yellow" height="h-1" />
-        <span class="text-[10px] text-zinc-500 font-medium">Habits</span>
+        {#if isLoading}
+          <div class="space-y-1">
+            <Skeleton height="h-4" />
+            <Skeleton height="h-3" width="w-1/2" />
+          </div>
+        {:else if topHabit()}
+          {@const th = topHabit()!}
+          <p class="text-sm font-bold text-zinc-100 truncate">{th.title}</p>
+          <p class="text-[10px] text-orange-400 font-bold uppercase mt-1">{th.streak} Day Streak</p>
+        {:else}
+          <p class="text-xs text-zinc-500 italic">No active habits</p>
+        {/if}
       </Card>
     </div>
-  </section>
+  </div>
 
-  <!-- Active Protocols -->
-  <section class="space-y-3">
-    <h3 class="text-sm font-semibold text-zinc-300 tracking-wide uppercase">Active Protocols</h3>
-    {#each globalState.activeProtocols as protocol}
-      <Card class="flex items-center justify-between !p-4 border-l-2 {protocol.color === 'teal' ? 'border-l-teal-500' : 'border-l-green-500'}">
-        <div>
-          <h4 class="text-sm font-medium">{protocol.title}</h4>
-          <p class="text-[10px] text-zinc-500 uppercase mt-0.5">{protocol.type}</p>
+  <!-- Systems Overview -->
+  <section class="space-y-3 mt-4">
+    <h3 class="text-sm font-semibold text-zinc-300 tracking-wide uppercase">Systems Overview</h3>
+    <div class="grid grid-cols-4 gap-3">
+      <!-- Mapped stats for quick view -->
+      {#each [
+        { label: 'Focus', val: globalState.stats.productivity, color: 'text-teal-400', bg: 'bg-teal-500/10', icon: Zap, route: '/focus' },
+        { label: 'Health', val: globalState.stats.health, color: 'text-rose-400', bg: 'bg-rose-500/10', icon: Heart, route: '/health' },
+        { label: 'Finance', val: globalState.stats.finance, color: 'text-green-400', bg: 'bg-green-500/10', icon: Wallet, route: '/finance' },
+        { label: 'Habits', val: globalState.stats.habits, color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: ListChecks, route: '/habits' }
+      ] as sys}
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+        <div class="flex flex-col items-center gap-2 cursor-pointer group active:scale-90 transition-transform" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto(sys.route); }}>
+          {#if isLoading}
+            <Skeleton width="w-12" height="h-12" rounded="rounded-2xl" />
+          {:else}
+            <div class="w-12 h-12 {sys.bg} {sys.color} rounded-2xl flex items-center justify-center border border-white/5 group-hover:border-white/10 transition-colors">
+              <sys.icon size={20} />
+            </div>
+            <span class="text-[9px] font-bold uppercase text-zinc-500">{sys.label}</span>
+          {/if}
         </div>
-        <div class="text-right">
-          <p class="font-mono text-sm font-bold text-zinc-100">{protocol.value}</p>
-        </div>
-      </Card>
-    {/each}
+      {/each}
+    </div>
   </section>
 </div>
 
