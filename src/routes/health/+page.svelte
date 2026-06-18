@@ -4,6 +4,7 @@
   import { Moon, Activity, Droplets, Utensils, Pill, X, Coffee, Apple, Dumbbell, ChevronDown } from 'lucide-svelte';
   import { haptic, HAPTIC_PATTERNS } from '$lib/haptics';
   import { playMechanicalClick, playWaterDrop, playSuccessChime } from '$lib/sounds';
+  import { onMount } from 'svelte';
 
   // --- State ---
   let healthScore = $state(84);
@@ -89,6 +90,10 @@
 
   function handleWaterClick(e: MouseEvent) {
     triggerGlow(e);
+    addWaterCheckIn();
+  }
+
+  function addWaterCheckIn() {
     if (waterMl >= waterGoal) return;
     waterMl += 250;
     waterWaveActive = true;
@@ -110,8 +115,8 @@
     loggedMeals = new Set(loggedMeals);
   }
 
-  function toggleSupplement(id: number, e: MouseEvent) {
-    triggerGlow(e);
+  function toggleSupplement(id: number, e?: MouseEvent) {
+    if (e) triggerGlow(e);
     playMechanicalClick();
     haptic(HAPTIC_PATTERNS.snap);
     const s = supplements.find(x => x.id === id);
@@ -121,6 +126,27 @@
       setTimeout(() => { if (s) { s.animating = false; s.pillFlash = false; } }, 500);
     }
   }
+
+  onMount(() => {
+    const handleFabAction = (event: Event) => {
+      const type = (event as CustomEvent<{ type?: string }>).detail?.type;
+      if (type === 'water') {
+        addWaterCheckIn();
+      } else if (type === 'training') {
+        stepsExpanded = true;
+        textGlowSteps = true;
+        stepsPressed = true;
+        setTimeout(() => { stepsPressed = false; textGlowSteps = false; }, 300);
+        haptic(HAPTIC_PATTERNS.light);
+      } else if (type === 'supplement') {
+        const unchecked = supplements.find((s) => !s.checked);
+        if (unchecked) toggleSupplement(unchecked.id);
+      }
+    };
+
+    document.addEventListener('fab-action', handleFabAction);
+    return () => document.removeEventListener('fab-action', handleFabAction);
+  });
 </script>
 
 <div class="space-y-6 pb-6">

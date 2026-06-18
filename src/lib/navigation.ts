@@ -20,8 +20,11 @@ const ROUTE_ALIASES: Record<string, string> = {
 	'/productivity': '/focus'
 };
 
-export function normalizeRoute(pathname: string): string {
-	if (ROUTE_ALIASES[pathname]) return ROUTE_ALIASES[pathname];
-	if (pathname.length > 1 && pathname.endsWith('/')) return pathname.slice(0, -1);
-	return pathname;
+export function normalizeRoute(pathname: string, base = ''): string {
+	const withoutBase = base && pathname.startsWith(base) ? pathname.slice(base.length) || '/' : pathname;
+	const normalizedPath = withoutBase.startsWith('/') ? withoutBase : `/${withoutBase}`;
+
+	if (ROUTE_ALIASES[normalizedPath]) return ROUTE_ALIASES[normalizedPath];
+	if (normalizedPath.length > 1 && normalizedPath.endsWith('/')) return normalizedPath.slice(0, -1);
+	return normalizedPath;
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { base } from '$app/paths';
   import { goto } from '$app/navigation';
   import { NAV_ITEMS, normalizeRoute } from '$lib/navigation';
 
@@ -7,7 +8,7 @@
   const halfSlotPercent = slotWidthPercent / 2;
 
   let activeIndex = $derived(() => {
-    const currentPath = normalizeRoute(page.url.pathname);
+    const currentPath = normalizeRoute(page.url.pathname, base);
     const idx = NAV_ITEMS.findIndex(item => currentPath === item.path);
     return idx >= 0 ? idx : 0;
   });
@@ -28,7 +29,7 @@
       <li class="flex-1">
         <button
           type="button"
-          onclick={() => goto(item.path)}
+          onclick={() => goto(`${base}${item.path}`)}
           class="flex flex-col items-center justify-center h-full space-y-1 transition-all duration-300 group"
           class:text-green-400={activeIndex() === i}
           class:text-zinc-500={activeIndex() !== i}

@@ -6,6 +6,7 @@ describe('navigation config', () => {
 		expect(normalizeRoute('/dashboard')).toBe('/');
 		expect(normalizeRoute('/productivity')).toBe('/focus');
 		expect(normalizeRoute('/health')).toBe('/health');
+		expect(normalizeRoute('/lifeos/health', '/lifeos')).toBe('/health');
 	});
 
 	it('keeps bottom nav and systems overview routes aligned', () => {
