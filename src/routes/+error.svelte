@@ -1,6 +1,15 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
   import { ShieldAlert } from 'lucide-svelte';
+
+  onMount(() => {
+    const timer = setTimeout(() => {
+      goto('/');
+    }, 1200);
+    return () => clearTimeout(timer);
+  });
 </script>
 
 <div class="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center text-zinc-100">
@@ -18,8 +27,12 @@
       {$page.error?.message || '500 Internal Server Error'}
     </div>
     
-    <a href="/" class="w-full inline-block bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95 text-sm uppercase tracking-wider">
+    <button
+      type="button"
+      onclick={() => goto('/')}
+      class="w-full inline-block bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] active:scale-95 text-sm uppercase tracking-wider"
+    >
       Reboot System
-    </a>
+    </button>
   </div>
 </div>

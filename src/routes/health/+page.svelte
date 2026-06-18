@@ -13,6 +13,7 @@
   let showDeepDive = $state(false);
   let ringAnimating = $state(false);
   let deepSleepExpanded = $state(false);
+  let showSleepModal = $state(false);
   let stepsExpanded = $state(false);
   let deepSleepPressed = $state(false);
   let stepsPressed = $state(false);
@@ -37,7 +38,11 @@
   let glowBursts = $state<Array<{id: number, x: number, y: number}>>([]);
   let nextBurstId = $state(0);
 
-  const sleepData7d = [85, 70, 90, 65, 95, 80, 105];
+  let sleepStart = $state('23:15');
+  let sleepEnd = $state('06:45');
+  let sleepData7d = $state([85, 70, 90, 65, 95, 80, 105]);
+  let sleepDurationMinutes = $derived(calcSleepDurationMinutes(sleepStart, sleepEnd));
+  let sleepDurationLabel = $derived(formatSleepDuration(sleepDurationMinutes));
   const stepsData7d = [6200, 8100, 7300, 9500, 5800, 8432, 7100];
   const dayLabels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
@@ -62,6 +67,23 @@
     return data.map((v, i) => `${i === 0 ? 'M' : 'L'}${i * sx},${h - ((v - min) / range) * h * 0.8 - h * 0.1}`).join(' ');
   }
 
+  function parseTime(value: string): number {
+    const [hours, minutes] = value.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  function calcSleepDurationMinutes(start: string, end: string): number {
+    const startMin = parseTime(start);
+    const endMin = parseTime(end);
+    return endMin >= startMin ? endMin - startMin : 24 * 60 - startMin + endMin;
+  }
+
+  function formatSleepDuration(minutes: number): string {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h}h ${String(m).padStart(2, '0')}m`;
+  }
+
   function handleRingClick(e: MouseEvent) {
     triggerGlow(e);
     ringAnimating = true;
@@ -76,6 +98,20 @@
     textGlowSleep = true;
     setTimeout(() => { deepSleepPressed = false; textGlowSleep = false; }, 300);
     deepSleepExpanded = !deepSleepExpanded;
+  }
+
+  function saveSleepEntry() {
+    const newDuration = sleepDurationMinutes;
+    sleepData7d = [...sleepData7d.slice(-6), newDuration];
+    const targetMinutes = 8 * 60;
+    const deviation = Math.abs(newDuration - targetMinutes);
+    sleepScore = Math.max(40, Math.min(100, Math.round(100 - deviation / 5)));
+    healthScore = Math.max(
+      0,
+      Math.min(100, Math.round((sleepScore + activityScore + Math.round((waterMl / waterGoal) * 100)) / 3))
+    );
+    showSleepModal = false;
+    haptic(HAPTIC_PATTERNS.medium);
   }
 
   function handleStepsClick(e: MouseEvent) {
@@ -222,7 +258,7 @@
         <ChevronDown size={14} class="ml-auto text-zinc-600 transition-transform duration-300 {deepSleepExpanded ? 'rotate-180' : ''}" />
       </div>
       <div class="flex items-baseline gap-1">
-        <span class="text-2xl font-mono font-bold {textGlowSleep ? 'animate-text-glow' : ''}">1h 45m</span>
+        <span class="text-2xl font-mono font-bold {textGlowSleep ? 'animate-text-glow' : ''}">{sleepDurationLabel}</span>
       </div>
       <div class="mt-3"><ProgressBar progress={80} color="teal" height="h-1.5" /></div>
       {#if deepSleepExpanded}
@@ -237,6 +273,13 @@
           <div class="flex justify-between mt-1">
             {#each dayLabels as d}<span class="text-[8px] text-zinc-600">{d}</span>{/each}
           </div>
+          <button
+            type="button"
+            class="mt-3 w-full rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition-all text-xs font-semibold py-2"
+            onclick={(e) => { e.stopPropagation(); showSleepModal = true; }}
+          >
+            Log Sleep
+          </button>
         </div>
       {/if}
     </div>
@@ -318,7 +361,7 @@
   {#if showNutritionModal}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="fixed inset-0 z-50 flex items-end justify-center p-4" onclick={() => showNutritionModal = false}>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" onclick={() => showNutritionModal = false}>
       <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
       <div class="relative w-full max-w-sm rounded-3xl p-6 animate-zoom-fade-in border border-zinc-600/30" style="background: rgba(24,24,27,0.75); backdrop-filter: blur(24px);" onclick={(e) => e.stopPropagation()}>
         <div class="flex items-center justify-between mb-5">
@@ -339,6 +382,40 @@
             </button>
           {/each}
         </div>
+      </div>
+    </div>
+  {/if}
+
+  {#if showSleepModal}
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4" onclick={() => showSleepModal = false}>
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div
+        class="relative w-full max-w-sm rounded-3xl p-6 animate-zoom-fade-in border border-zinc-600/30"
+        style="background: rgba(24,24,27,0.85); backdrop-filter: blur(24px);"
+        onclick={(e) => e.stopPropagation()}
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold">Manual Sleep Tracking</h3>
+          <button class="text-zinc-500 hover:text-zinc-300 transition-colors" onclick={() => showSleepModal = false}>
+            <X size={20} />
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label class="text-[10px] text-zinc-500 uppercase block mb-1">Start</label>
+            <input type="time" bind:value={sleepStart} class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:border-indigo-500/50 focus:outline-none text-sm" />
+          </div>
+          <div>
+            <label class="text-[10px] text-zinc-500 uppercase block mb-1">End</label>
+            <input type="time" bind:value={sleepEnd} class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2.5 text-zinc-100 focus:border-indigo-500/50 focus:outline-none text-sm" />
+          </div>
+        </div>
+        <p class="text-sm text-zinc-300 mb-4">
+          Calculated duration: <span class="font-mono text-indigo-300">{sleepDurationLabel}</span>
+        </p>
+        <button type="button" class="w-full rounded-xl bg-indigo-500 hover:bg-indigo-400 text-zinc-950 font-bold py-3 transition-all active:scale-95" onclick={saveSleepEntry}>
+          Save Sleep Entry
+        </button>
       </div>
     </div>
   {/if}

@@ -275,10 +275,10 @@
 
 <!-- ── Add / Edit Modal ────────────────────────────────────── -->
 {#if showModal}
-  <div class="fixed inset-0 z-50 flex items-end justify-center" onclick={closeContextMenu}>
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" onclick={closeContextMenu}>
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick={() => showModal = false}></div>
     <div
-      class="relative glass rounded-t-3xl p-6 w-full max-w-md border border-zinc-700/50 border-b-0 animate-slide-up"
+      class="relative glass rounded-3xl p-6 w-full max-w-md border border-zinc-700/50 animate-zoom-fade-in"
       onclick={(e) => e.stopPropagation()}>
 
       <div class="w-10 h-1 bg-zinc-700 rounded-full mx-auto mb-5"></div>

@@ -219,6 +219,17 @@ function injectRollover(store: FinanceStore, targetKey: string) {
   store.months[targetKey].rolloverFromPrev = Math.round(prevSurplus * 100) / 100;
 }
 
+function recomputeRollovers(store: FinanceStore) {
+  const keys = Object.keys(store.months).sort((a, b) => a.localeCompare(b));
+  for (let i = 1; i < keys.length; i++) {
+    const prevMonth = store.months[keys[i - 1]];
+    const currentMonth = store.months[keys[i]];
+    const { income, expenses } = calcTotals(prevMonth);
+    const carry = prevMonth.rolloverFromPrev + income - expenses;
+    currentMonth.rolloverFromPrev = Math.round(carry * 100) / 100;
+  }
+}
+
 // ── Get or create a month ────────────────────────────────────
 
 function getOrCreateMonth(store: FinanceStore, key: string): MonthData {
@@ -234,6 +245,7 @@ function getOrCreateMonth(store: FinanceStore, key: string): MonthData {
       injectRollover(store, key);
       processRecurring(store, key);
     }
+    recomputeRollovers(store);
   }
   return store.months[key];
 }
@@ -256,6 +268,7 @@ if (!_loaded.months[_currentKey]) {
     processRecurring(_loaded, _currentKey);
   }
 }
+recomputeRollovers(_loaded);
 
 export const financeStore = $state({
   months: _loaded.months as Record<string, MonthData>,
@@ -285,12 +298,14 @@ export const financeStore = $state({
     month.transactions = [newTx, ...month.transactions].sort(
       (a, b) => b.date.localeCompare(a.date)
     );
+    recomputeRollovers(this);
     persist({ months: this.months });
   },
 
   deleteTransaction(id: string) {
     const month = this.currentMonth;
     month.transactions = month.transactions.filter(t => t.id !== id);
+    recomputeRollovers(this);
     persist({ months: this.months });
   },
 

@@ -60,8 +60,8 @@
   let newTaskPriority = $state<'High' | 'Medium' | 'Maintenance'>('Medium');
   let newTaskTime = $state('12:00');
 
-  const activeTasks = $derived(globalState.tasks.filter(t => !t.completed));
-  const completedTasks = $derived(globalState.tasks.filter(t => t.completed));
+  const activeTasks = $derived(globalState.tasks.filter((t: Task) => !t.completed));
+  const completedTasks = $derived(globalState.tasks.filter((t: Task) => t.completed));
 
   const addTask = () => {
     if (!newTaskTitle.trim()) return;
@@ -79,10 +79,10 @@
 
   // --- Progress Logic ---
   // progress for "SWP App Development" based on tasks containing "SWP"
-  const swpTasks = $derived(globalState.tasks.filter(t => t.title.toLowerCase().includes('swp')));
+  const swpTasks = $derived(globalState.tasks.filter((t: Task) => t.title.toLowerCase().includes('swp')));
   const swpProgress = $derived(() => {
     if (swpTasks.length === 0) return 75; // baseline
-    const completed = swpTasks.filter(t => t.completed).length;
+    const completed = swpTasks.filter((t: Task) => t.completed).length;
     return Math.round((completed / swpTasks.length) * 100);
   });
 

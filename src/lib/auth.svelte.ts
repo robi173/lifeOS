@@ -52,7 +52,7 @@ export const auth = {
     authStore.isAuthenticated = newState.isAuthenticated;
     authStore.user = newState.user;
     persist(newState);
-    haptic(HAPTIC_PATTERNS.success);
+    haptic(HAPTIC_PATTERNS.wave);
   },
 
   logout: () => {

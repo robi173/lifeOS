@@ -7,6 +7,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { authStore, auth } from '$lib/auth.svelte';
+	import { habitsStore } from '$lib/habits.svelte';
 	import { fade } from 'svelte/transition';
 	import { ChevronLeft, Settings, User, LogOut } from 'lucide-svelte';
 
@@ -28,9 +29,13 @@
 	});
 
 	onMount(() => {
+		habitsStore.checkDayChange();
 		const timer = setInterval(() => {
 			currentTime = new Date();
 		}, 1000);
+		const dayTimer = setInterval(() => {
+			habitsStore.checkDayChange();
+		}, 60_000);
 
 		const handleFabAction = (e: any) => {
 			// Handle actions from FloatingActionButton sub-buttons
@@ -41,6 +46,7 @@
 
 		return () => {
 			clearInterval(timer);
+			clearInterval(dayTimer);
 			document.removeEventListener('fab-action', handleFabAction);
 		};
 	});
@@ -130,9 +136,14 @@
 		<div class="fixed bottom-18 right-4 z-30 pointer-events-none" in:fade>
 			<div class="flex items-center gap-2 bg-zinc-900/40 backdrop-blur-md px-3 py-1 rounded-full border border-zinc-800/50">
 				<div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-				<span class="text-[10px] font-mono text-zinc-400">
-					{new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(currentTime)}
-				</span>
+				<div class="flex flex-col leading-tight">
+					<span class="text-[10px] font-mono text-zinc-400">
+						{new Intl.DateTimeFormat('de-AT', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(currentTime)}
+					</span>
+					<span class="text-[9px] font-mono text-zinc-500">
+						{new Intl.DateTimeFormat('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(currentTime)}
+					</span>
+				</div>
 			</div>
 		</div>
 

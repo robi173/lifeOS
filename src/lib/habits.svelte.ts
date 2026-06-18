@@ -341,7 +341,14 @@ export const habitsStore = $state({
   getPills(habitId: string): boolean[] {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return [false, false, false, false, false];
-    return getConsistencyPills(habit, this.history, this.todayDate);
+    const withToday: HabitHistory = {
+      ...this.history,
+      [habitId]: {
+        ...(this.history[habitId] ?? {}),
+        [this.todayDate]: this.todayCompleted.includes(habitId)
+      }
+    };
+    return getConsistencyPills(habit, withToday, addDays(this.todayDate, 1));
   },
 
   getWeek(): WeekDay7[] {
