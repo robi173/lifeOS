@@ -20,7 +20,7 @@
   });
 
   // Derived dashboard data
-  let nextTask = $derived(globalState.tasks.find(t => !t.completed));
+  let nextTask = $derived(globalState.tasks.find((t: import('$lib/state.svelte').Task) => !t.completed));
   let totalAssets = $derived(calcTotals(financeStore.currentMonth).totalAssets);
   
   let topHabit = $derived(() => {
@@ -126,7 +126,7 @@
         { label: 'Habits', val: globalState.stats.habits, color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: ListChecks, route: '/habits' }
       ] as sys}
         <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="flex flex-col items-center gap-2 cursor-pointer group active:scale-90 transition-transform" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto(sys.route); }}>
+        <div class="flex flex-col items-center gap-2 cursor-pointer group active:scale-90 hover:scale-105 transition-all" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto(sys.route); }}>
           {#if isLoading}
             <Skeleton width="w-12" height="h-12" rounded="rounded-2xl" />
           {:else}

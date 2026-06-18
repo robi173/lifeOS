@@ -1,8 +1,17 @@
 <script lang="ts">
-  let { children, class: className = '', glowColor = '' } = $props();
+  import type { Snippet } from 'svelte';
+
+  interface Props {
+    children: Snippet;
+    class?: string;
+    glowColor?: string;
+    onclick?: (e: MouseEvent) => void;
+  }
+
+  let { children, class: className = '', glowColor = '', onclick }: Props = $props();
 
   // Helper to add neon glow if specified
-  let glowClasses = $derived(() => {
+  let glowClasses = $derived.by(() => {
     if (glowColor === 'teal') return 'shadow-[0_0_15px_rgba(20,184,166,0.15)] border-teal-500/20';
     if (glowColor === 'green') return 'shadow-[0_0_15px_rgba(34,197,94,0.15)] border-green-500/20';
     if (glowColor === 'yellow') return 'shadow-[0_0_15px_rgba(234,179,8,0.15)] border-yellow-500/20';
@@ -10,6 +19,6 @@
   });
 </script>
 
-<div class="glass rounded-2xl p-5 hover-float {glowClasses()} {className}">
+<div class="glass rounded-2xl p-5 hover-float {glowClasses} {className}" {onclick}>
   {@render children()}
 </div>

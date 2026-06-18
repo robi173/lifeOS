@@ -13,5 +13,6 @@ export const HAPTIC_PATTERNS = {
   medium: 20,
   heavy: [30, 50, 30],
   snap: [10, 30, 20],
-  wave: [10, 20, 10, 20, 10]
+  wave: [10, 20, 10, 20, 10],
+  success: [30, 50, 100]
 };

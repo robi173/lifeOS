@@ -60,8 +60,8 @@
   let newTaskPriority = $state<'High' | 'Medium' | 'Maintenance'>('Medium');
   let newTaskTime = $state('12:00');
 
-  const activeTasks = $derived(globalState.tasks.filter(t => !t.completed));
-  const completedTasks = $derived(globalState.tasks.filter(t => t.completed));
+  const activeTasks = $derived(globalState.tasks.filter((t: Task) => !t.completed));
+  const completedTasks = $derived(globalState.tasks.filter((t: Task) => t.completed));
 
   const addTask = () => {
     if (!newTaskTitle.trim()) return;
@@ -79,10 +79,10 @@
 
   // --- Progress Logic ---
   // progress for "SWP App Development" based on tasks containing "SWP"
-  const swpTasks = $derived(globalState.tasks.filter(t => t.title.toLowerCase().includes('swp')));
-  const swpProgress = $derived(() => {
+  const swpTasks = $derived(globalState.tasks.filter((t: Task) => t.title.toLowerCase().includes('swp')));
+  const swpProgress = $derived.by(() => {
     if (swpTasks.length === 0) return 75; // baseline
-    const completed = swpTasks.filter(t => t.completed).length;
+    const completed = swpTasks.filter((t: Task) => t.completed).length;
     return Math.round((completed / swpTasks.length) * 100);
   });
 
@@ -254,9 +254,9 @@
       <div>
         <div class="flex justify-between items-center mb-2">
           <span class="font-medium text-sm">SWP App Development</span>
-          <span class="font-mono text-xs text-teal-400">{swpProgress()}%</span>
+          <span class="font-mono text-xs text-teal-400">{swpProgress}%</span>
         </div>
-        <ProgressBar progress={swpProgress()} color="teal" />
+        <ProgressBar progress={swpProgress} color="teal" />
       </div>
       <div>
         <div class="flex justify-between items-center mb-2">
