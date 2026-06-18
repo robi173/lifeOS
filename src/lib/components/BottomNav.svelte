@@ -5,13 +5,13 @@
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: Home },
-    { name: 'Focus', path: '/productivity', icon: Zap },
+    { name: 'Focus', path: '/focus', icon: Zap },
     { name: 'Health', path: '/health', icon: HeartPulse },
     { name: 'Finance', path: '/finance', icon: Wallet },
     { name: 'Habits', path: '/habits', icon: ListChecks }
   ];
 
-  let activeIndex = $derived(() => {
+  let activeIndex = $derived.by(() => {
     const idx = navItems.findIndex(item => page.url.pathname === `${base}${item.path}`);
     return idx >= 0 ? idx : 0;
   });
@@ -22,7 +22,7 @@
   <div class="relative h-0.5">
     <div
       class="absolute top-0 h-0.5 w-10 bg-green-500 rounded-full nav-indicator shadow-[0_0_8px_rgba(34,197,94,0.6)]"
-      style="left: calc({activeIndex()} * 20% + 10% - 20px)"
+      style="left: calc({activeIndex} * 20% + 10% - 20px)"
     ></div>
   </div>
   <ul class="flex justify-around items-center h-16 px-2">
@@ -31,11 +31,11 @@
         <a
           href="{base}{item.path}"
           class="flex flex-col items-center justify-center h-full space-y-1 transition-all duration-300 group"
-          class:text-green-400={activeIndex() === i}
-          class:text-zinc-500={activeIndex() !== i}
+          class:text-green-400={activeIndex === i}
+          class:text-zinc-500={activeIndex !== i}
         >
-          <div class="transition-transform duration-300 {activeIndex() === i ? 'scale-110' : 'group-hover:scale-105'}">
-            <item.icon size={22} strokeWidth={activeIndex() === i ? 2.5 : 2} />
+          <div class="transition-transform duration-300 {activeIndex === i ? 'scale-110' : 'group-hover:scale-105'}">
+            <item.icon size={22} strokeWidth={activeIndex === i ? 2.5 : 2} />
           </div>
           <span class="text-[10px] font-medium tracking-wide">{item.name}</span>
         </a>
