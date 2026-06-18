@@ -4,6 +4,7 @@
   import { Moon, Activity, Droplets, Utensils, Pill, X, Coffee, Apple, Dumbbell, ChevronDown } from 'lucide-svelte';
   import { haptic, HAPTIC_PATTERNS } from '$lib/haptics';
   import { playMechanicalClick, playWaterDrop, playSuccessChime } from '$lib/sounds';
+  import { onMount } from 'svelte';
 
   // --- State ---
   let healthScore = $state(84);
@@ -89,13 +90,7 @@
 
   function handleWaterClick(e: MouseEvent) {
     triggerGlow(e);
-    if (waterMl >= waterGoal) return;
-    waterMl += 250;
-    waterWaveActive = true;
-    playWaterDrop();
-    haptic(HAPTIC_PATTERNS.light);
-    if (waterMl >= waterGoal) { playSuccessChime(); haptic(HAPTIC_PATTERNS.heavy); }
-    setTimeout(() => { waterWaveActive = false; }, 600);
+    addWater();
   }
 
   function handleNutritionClick(e: MouseEvent) {
@@ -112,6 +107,25 @@
 
   function toggleSupplement(id: number, e: MouseEvent) {
     triggerGlow(e);
+    toggleSupplementById(id);
+  }
+
+  function addWater() {
+    if (waterMl >= waterGoal) return;
+    waterMl += 250;
+    waterWaveActive = true;
+    playWaterDrop();
+    haptic(HAPTIC_PATTERNS.light);
+    if (waterMl >= waterGoal) {
+      playSuccessChime();
+      haptic(HAPTIC_PATTERNS.heavy);
+    }
+    setTimeout(() => {
+      waterWaveActive = false;
+    }, 600);
+  }
+
+  function toggleSupplementById(id: number) {
     playMechanicalClick();
     haptic(HAPTIC_PATTERNS.snap);
     const s = supplements.find(x => x.id === id);
@@ -121,6 +135,28 @@
       setTimeout(() => { if (s) { s.animating = false; s.pillFlash = false; } }, 500);
     }
   }
+
+  onMount(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ type?: string }>;
+      const type = custom.detail?.type;
+
+      if (type === 'water') {
+        addWater();
+      } else if (type === 'training') {
+        showDeepDive = true;
+        haptic(HAPTIC_PATTERNS.medium);
+      } else if (type === 'supplement') {
+        const nextOpen = supplements.find(s => !s.checked) ?? supplements[0];
+        if (nextOpen) {
+          toggleSupplementById(nextOpen.id);
+        }
+      }
+    };
+
+    document.addEventListener('fab-action', handler);
+    return () => document.removeEventListener('fab-action', handler);
+  });
 </script>
 
 <div class="space-y-6 pb-6">

@@ -263,7 +263,7 @@
         <div class="flex items-center justify-between p-3 bg-zinc-900/40 rounded-xl border border-zinc-800/50 group relative animate-zoom-fade-in">
           <div class="flex items-center gap-3 flex-1 min-w-0">
             <div class="w-9 h-9 rounded-xl {tx.type === 'income' ? 'bg-green-500/15 border border-green-500/30' : 'bg-rose-500/15 border border-rose-500/30'} flex items-center justify-center shrink-0">
-              <DollarSign size={15} class="{tx.type === 'income' ? 'text-green-400' : 'text-rose-400'}" />
+              <DollarSign size={15} class={tx.type === 'income' ? 'text-green-400' : 'text-rose-400'} />
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-2">

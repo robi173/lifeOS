@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { children, class: className = '', glowColor = '' } = $props();
+  let { children, class: className = '', glowColor = '', onClick = undefined } = $props();
 
   // Helper to add neon glow if specified
   let glowClasses = $derived(() => {
@@ -10,6 +10,6 @@
   });
 </script>
 
-<div class="glass rounded-2xl p-5 hover-float {glowClasses()} {className}">
+<div class="glass rounded-2xl p-5 hover-float {glowClasses()} {className}" onclick={onClick}>
   {@render children()}
 </div>

@@ -9,6 +9,7 @@
   import { Heart, Zap, Wallet, ListChecks, Target, Flame } from 'lucide-svelte';
   import { haptic, HAPTIC_PATTERNS } from '$lib/haptics';
   import { goto } from '$app/navigation';
+  import { NAV_ITEMS } from '$lib/navigation';
 
   let isLoading = $state(true);
 
@@ -20,7 +21,7 @@
   });
 
   // Derived dashboard data
-  let nextTask = $derived(globalState.tasks.find(t => !t.completed));
+  let nextTask = $derived(globalState.tasks.find((t: (typeof globalState.tasks)[number]) => !t.completed));
   let totalAssets = $derived(calcTotals(financeStore.currentMonth).totalAssets);
   
   let topHabit = $derived(() => {
@@ -53,7 +54,7 @@
     
     <!-- Focus Widget -->
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <Card class="relative overflow-hidden cursor-pointer hover:border-teal-500/30 transition-colors active:scale-[0.98]" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto('/focus'); }}>
+    <Card class="relative overflow-hidden cursor-pointer hover:border-teal-500/30 transition-colors active:scale-[0.98]" onClick={() => { haptic(HAPTIC_PATTERNS.light); goto('/focus'); }}>
       <div class="absolute right-0 top-0 w-24 h-24 bg-teal-500/10 rounded-bl-full blur-2xl pointer-events-none"></div>
       
       <div class="flex items-center gap-2 text-teal-400 mb-3 relative z-10">
@@ -79,7 +80,7 @@
     <div class="grid grid-cols-2 gap-4">
       <!-- Finance Widget -->
       <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-      <Card class="cursor-pointer hover:border-green-500/30 transition-colors active:scale-[0.98]" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto('/finance'); }}>
+      <Card class="cursor-pointer hover:border-green-500/30 transition-colors active:scale-[0.98]" onClick={() => { haptic(HAPTIC_PATTERNS.light); goto('/finance'); }}>
         <div class="flex items-center gap-2 text-green-400 mb-2">
           <Wallet size={16} />
           <span class="text-[10px] font-bold uppercase tracking-wider">Assets</span>
@@ -93,7 +94,7 @@
 
       <!-- Habit Widget -->
       <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-      <Card class="cursor-pointer hover:border-yellow-500/30 transition-colors active:scale-[0.98]" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto('/habits'); }}>
+      <Card class="cursor-pointer hover:border-yellow-500/30 transition-colors active:scale-[0.98]" onClick={() => { haptic(HAPTIC_PATTERNS.light); goto('/habits'); }}>
         <div class="flex items-center gap-2 text-yellow-400 mb-2">
           <Flame size={16} />
           <span class="text-[10px] font-bold uppercase tracking-wider">Top Habit</span>
@@ -120,10 +121,10 @@
     <div class="grid grid-cols-4 gap-3">
       <!-- Mapped stats for quick view -->
       {#each [
-        { label: 'Focus', val: globalState.stats.productivity, color: 'text-teal-400', bg: 'bg-teal-500/10', icon: Zap, route: '/focus' },
-        { label: 'Health', val: globalState.stats.health, color: 'text-rose-400', bg: 'bg-rose-500/10', icon: Heart, route: '/health' },
-        { label: 'Finance', val: globalState.stats.finance, color: 'text-green-400', bg: 'bg-green-500/10', icon: Wallet, route: '/finance' },
-        { label: 'Habits', val: globalState.stats.habits, color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: ListChecks, route: '/habits' }
+        { label: 'Focus', val: globalState.stats.productivity, color: 'text-teal-400', bg: 'bg-teal-500/10', icon: Zap, route: NAV_ITEMS.find((item) => item.key === 'focus')?.path ?? '/focus' },
+        { label: 'Health', val: globalState.stats.health, color: 'text-rose-400', bg: 'bg-rose-500/10', icon: Heart, route: NAV_ITEMS.find((item) => item.key === 'health')?.path ?? '/health' },
+        { label: 'Finance', val: globalState.stats.finance, color: 'text-green-400', bg: 'bg-green-500/10', icon: Wallet, route: NAV_ITEMS.find((item) => item.key === 'finance')?.path ?? '/finance' },
+        { label: 'Habits', val: globalState.stats.habits, color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: ListChecks, route: NAV_ITEMS.find((item) => item.key === 'habits')?.path ?? '/habits' }
       ] as sys}
         <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
         <div class="flex flex-col items-center gap-2 cursor-pointer group active:scale-90 transition-transform" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto(sys.route); }}>

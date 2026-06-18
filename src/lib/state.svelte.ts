@@ -79,7 +79,7 @@ export const globalState = $state({
   },
 
   toggleTask(id: number) {
-    const task = this.tasks.find(t => t.id === id);
+    const task = this.tasks.find((t: Task) => t.id === id);
     if (task) {
       task.completed = !task.completed;
       this.save();
