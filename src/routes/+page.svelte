@@ -6,9 +6,10 @@
   import { authStore } from '$lib/auth.svelte';
   import { financeStore, calcTotals } from '$lib/finance.svelte';
   import { habitsStore } from '$lib/habits.svelte';
-  import { Heart, Zap, Wallet, ListChecks, Target, Flame } from 'lucide-svelte';
+  import { Wallet, Target, Flame } from 'lucide-svelte';
   import { haptic, HAPTIC_PATTERNS } from '$lib/haptics';
   import { goto } from '$app/navigation';
+  import { SYSTEMS_OVERVIEW_ITEMS } from '$lib/navigation';
 
   let isLoading = $state(true);
 
@@ -119,14 +120,15 @@
     <h3 class="text-sm font-semibold text-zinc-300 tracking-wide uppercase">Systems Overview</h3>
     <div class="grid grid-cols-4 gap-3">
       <!-- Mapped stats for quick view -->
-      {#each [
-        { label: 'Focus', val: globalState.stats.productivity, color: 'text-teal-400', bg: 'bg-teal-500/10', icon: Zap, route: '/focus' },
-        { label: 'Health', val: globalState.stats.health, color: 'text-rose-400', bg: 'bg-rose-500/10', icon: Heart, route: '/health' },
-        { label: 'Finance', val: globalState.stats.finance, color: 'text-green-400', bg: 'bg-green-500/10', icon: Wallet, route: '/finance' },
-        { label: 'Habits', val: globalState.stats.habits, color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: ListChecks, route: '/habits' }
-      ] as sys}
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="flex flex-col items-center gap-2 cursor-pointer group active:scale-90 transition-transform" onclick={() => { haptic(HAPTIC_PATTERNS.light); goto(sys.route); }}>
+      {#each SYSTEMS_OVERVIEW_ITEMS as sys}
+        <button
+          type="button"
+          class="flex flex-col items-center gap-2 cursor-pointer group transition-all hover:scale-105 active:scale-90"
+          onclick={() => {
+            haptic(HAPTIC_PATTERNS.light);
+            goto(sys.route);
+          }}
+        >
           {#if isLoading}
             <Skeleton width="w-12" height="h-12" rounded="rounded-2xl" />
           {:else}
@@ -135,7 +137,7 @@
             </div>
             <span class="text-[9px] font-bold uppercase text-zinc-500">{sys.label}</span>
           {/if}
-        </div>
+        </button>
       {/each}
     </div>
   </section>
